@@ -769,6 +769,8 @@ router.post('/automation', auth, async (req, res) => {
     const { deviceId, type, settings } = req.body;
     const user = req.userDoc;
 
+    console.log('Automation request:', { deviceId, type, settings });
+
     // Check device access
     const device = await Device.findById(deviceId);
     if (!device) {
@@ -779,10 +781,25 @@ router.post('/automation', auth, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    // For alerts, we don't need a specific controlType - use 'light' as default or map sensor to control
+    let controlType = settings.action || settings.controlType;
+    
+    // Map sensor type to control type for alerts
+    if (type === 'alert' && !controlType) {
+      const sensorToControl = {
+        'light': 'light',
+        'temperature': 'fan',
+        'humidity': 'fan', 
+        'soil': 'irrigation',
+        'soil_moisture': 'irrigation'
+      };
+      controlType = sensorToControl[settings.sensor] || 'light';
+    }
+
     // Create or update control with automation settings
     let control = await Control.findOne({ 
       deviceId, 
-      controlType: settings.action || settings.controlType,
+      controlType,
       isActive: true 
     });
 
@@ -790,8 +807,8 @@ router.post('/automation', auth, async (req, res) => {
       control = new Control({
         deviceId,
         userId: user._id,
-        controlType: settings.action || settings.controlType,
-        mode: type === 'schedule' ? 'scheduled' : 'automatic'
+        controlType,
+        mode: type === 'schedule' ? 'scheduled' : type === 'alert' ? 'threshold' : 'auto'
       });
     }
 
