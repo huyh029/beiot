@@ -736,14 +736,8 @@ router.post('/automation', auth, async (req, res) => {
     
     // Map sensor type to control type for alerts
     if (type === 'alert' && !controlType) {
-      const sensorToControl = {
-        'light': 'light',
-        'temperature': 'fan',
-        'humidity': 'fan', 
-        'soil': 'irrigation',
-        'soil_moisture': 'irrigation'
-      };
-      controlType = sensorToControl[settings.sensor] || 'light';
+      // Use 'alert' as controlType for sensor alerts
+      controlType = 'alert';
     }
     
     // Default controlType for reminders
