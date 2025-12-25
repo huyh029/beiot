@@ -92,11 +92,13 @@ router.get('/mqtt-config/:deviceId', async (req, res) => {
   }
 });
 
-// Get control states by device ID (for ESP32)
-// Also acts as heartbeat + reads telemetry from MQTT + checks thresholds from DB
+// Get control states by device ID (for ESP32 and FE)
+// If called with ?heartbeat=true, updates lastSeen (ESP32 heartbeat)
+// Otherwise just reads data (FE polling)
 router.get('/controls/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
+    const { heartbeat } = req.query; // ESP32 gửi ?heartbeat=true
     const wsService = req.app.get('wsService');
     const mqttService = req.app.get('mqttService');
     
@@ -110,26 +112,28 @@ router.get('/controls/:deviceId', async (req, res) => {
       });
     }
     
-    // === HEARTBEAT: Update status to online ===
-    const wasOffline = device.status !== 'online';
-    const previousStatus = device.status;
-    device.status = 'online';
-    device.lastSeen = new Date();
-    await device.save();
-    
-    console.log(`📡 Device ${deviceId}: ${previousStatus} → online (lastSeen: ${device.lastSeen.toISOString()})`);
-    
-    // Broadcast status change if device was offline
-    if (wasOffline && wsService) {
-      wsService.broadcastDeviceStatus(device._id.toString(), 'online');
+    // === HEARTBEAT: Only update status if ESP32 sends heartbeat=true ===
+    if (heartbeat === 'true') {
+      const wasOffline = device.status !== 'online';
+      const previousStatus = device.status;
+      device.status = 'online';
+      device.lastSeen = new Date();
+      await device.save();
       
-      // Notify owner
-      wsService.sendNotificationToUser(device.ownerId._id.toString(), {
-        type: 'device_online',
-        message: `Thiết bị "${device.name}" đã online`,
-        severity: 'success',
-        deviceId: device._id
-      });
+      console.log(`📡 Device ${deviceId}: ${previousStatus} → online (lastSeen: ${device.lastSeen.toISOString()})`);
+      
+      // Broadcast status change if device was offline
+      if (wasOffline && wsService) {
+        wsService.broadcastDeviceStatus(device._id.toString(), 'online');
+        
+        // Notify owner
+        wsService.sendNotificationToUser(device.ownerId._id.toString(), {
+          type: 'device_online',
+          message: `Thiết bị "${device.name}" đã online`,
+          severity: 'success',
+          deviceId: device._id
+        });
+      }
     }
     // === END HEARTBEAT ===
     
