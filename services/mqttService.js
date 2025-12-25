@@ -7,22 +7,28 @@ class MQTTService extends EventEmitter {
     this.client = null;
     this.wsService = null;
     this.connected = false;
-    
-    // Config from env
+
+    // Config from env - broker.emqx.io is a free public broker
     this.broker = process.env.ESP32_MQTT_BROKER || 'broker.emqx.io';
     this.port = parseInt(process.env.ESP32_MQTT_PORT) || 1883;
     this.topicPrefix = process.env.ESP32_TOPIC_PREFIX || 'smartgarden';
-    
+
     // Cache telemetry per device
     this.deviceTelemetryCache = new Map();
     // Cache control states per device
     this.deviceControlCache = new Map();
-    
+
     this.connect();
   }
 
   connect() {
-    const brokerUrl = `mqtt://${this.broker}:${this.port}`;
+    // Handle broker URL - remove protocol if already included
+    let brokerHost = this.broker;
+    if (brokerHost.startsWith('mqtt://') || brokerHost.startsWith('mqtts://')) {
+      brokerHost = brokerHost.replace(/^mqtts?:\/\//, '');
+    }
+
+    const brokerUrl = `mqtt://${brokerHost}:${this.port}`;
     console.log(`🔌 Connecting to MQTT broker: ${brokerUrl}`);
 
     this.client = mqtt.connect(brokerUrl, {
