@@ -69,6 +69,15 @@ const controlSchema = new mongoose.Schema({
       methods: [{ type: String, enum: ['websocket', 'email', 'sms'] }]
     }
   },
+  // Alert settings (sensor-based notifications)
+  alertSettings: {
+    enabled: { type: Boolean, default: true },
+    sensor: String, // temperature, humidity, light, soil_moisture
+    conditionType: { type: String, enum: ['above', 'below', 'range'] },
+    minValue: Number,
+    maxValue: Number,
+    message: String
+  },
   // Current state
   currentState: {
     isOn: { type: Boolean, default: false },
