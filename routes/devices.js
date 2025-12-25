@@ -316,10 +316,11 @@ router.get('/controls/:deviceId', async (req, res) => {
         let shouldAlert = false;
         let alertCondition = '';
         
-        if (alertSetting.conditionType === 'above' && sensorValue > alertSetting.maxValue) {
+        // FE: above dùng minValue (> minValue), below dùng maxValue (< maxValue)
+        if (alertSetting.conditionType === 'above' && sensorValue > alertSetting.minValue) {
           shouldAlert = true;
           alertCondition = 'above';
-        } else if (alertSetting.conditionType === 'below' && sensorValue < alertSetting.minValue) {
+        } else if (alertSetting.conditionType === 'below' && sensorValue < alertSetting.maxValue) {
           shouldAlert = true;
           alertCondition = 'below';
         } else if (alertSetting.conditionType === 'range') {
@@ -340,7 +341,8 @@ router.get('/controls/:deviceId', async (req, res) => {
           if (!lastAlert || (now - lastAlert) > ALERT_COOLDOWN) {
             alertCooldowns.set(cooldownKey, now);
             
-            const thresholdValue = alertCondition === 'above' ? alertSetting.maxValue : alertSetting.minValue;
+            // FE: above dùng minValue, below dùng maxValue
+            const thresholdValue = alertCondition === 'above' ? alertSetting.minValue : alertSetting.maxValue;
             
             alerts.push({
               type: 'alert',
