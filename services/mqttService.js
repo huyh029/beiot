@@ -8,10 +8,17 @@ class MQTTService extends EventEmitter {
     this.wsService = null;
     this.connected = false;
 
-    // Config from env - broker.emqx.io is a free public broker
-    this.broker = process.env.ESP32_MQTT_BROKER || 'broker.emqx.io';
-    this.port = parseInt(process.env.ESP32_MQTT_PORT) || 1883;
-    this.topicPrefix = process.env.ESP32_TOPIC_PREFIX || 'smartgarden';
+    // Config from env - REQUIRED
+    this.broker = process.env.ESP32_MQTT_BROKER;
+    this.port = parseInt(process.env.ESP32_MQTT_PORT);
+    this.topicPrefix = process.env.ESP32_TOPIC_PREFIX;
+
+    // Validate required env vars
+    if (!this.broker || !this.port || !this.topicPrefix) {
+      console.error('❌ Missing MQTT config in environment variables');
+      console.error('Required: ESP32_MQTT_BROKER, ESP32_MQTT_PORT, ESP32_TOPIC_PREFIX');
+      return;
+    }
 
     // Cache telemetry per device
     this.deviceTelemetryCache = new Map();
@@ -22,6 +29,11 @@ class MQTTService extends EventEmitter {
   }
 
   connect() {
+    if (!this.broker) {
+      console.error('❌ Cannot connect - MQTT broker not configured');
+      return;
+    }
+
     // Handle broker URL - remove protocol if already included
     let brokerHost = this.broker;
     if (brokerHost.startsWith('mqtt://') || brokerHost.startsWith('mqtts://')) {
@@ -29,7 +41,7 @@ class MQTTService extends EventEmitter {
     }
 
     const brokerUrl = `mqtt://${brokerHost}:${this.port}`;
-    console.log(`🔌 Connecting to MQTT broker: ${brokerUrl}`);
+    console.log(`🔌 Connecting to MQTT broker...`);
 
     this.client = mqtt.connect(brokerUrl, {
       clientId: `smartgarden_server_${Date.now()}`,
