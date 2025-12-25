@@ -745,6 +745,11 @@ router.post('/automation', auth, async (req, res) => {
       };
       controlType = sensorToControl[settings.sensor] || 'light';
     }
+    
+    // Default controlType for reminders
+    if (type === 'reminder' && !controlType) {
+      controlType = 'reminder';
+    }
 
     // Create or update control with automation settings
     let control = await Control.findOne({ 
@@ -792,6 +797,19 @@ router.post('/automation', auth, async (req, res) => {
         minValue: settings.minValue,
         maxValue: settings.maxValue,
         message: settings.message
+      };
+    } else if (type === 'reminder') {
+      // Lưu nhắc nhở theo thời gian
+      control.mode = 'scheduled';
+      control.scheduleSettings = {
+        enabled: settings.enabled !== false,
+        schedules: [{
+          time: settings.time,
+          days: settings.days,
+          action: 'notify',
+          title: settings.title,
+          message: settings.message
+        }]
       };
     }
 
