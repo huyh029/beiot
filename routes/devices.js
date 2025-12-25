@@ -284,11 +284,16 @@ router.get('/controls/:deviceId', async (req, res) => {
     // Get control states from MQTT cache
     const controls = mqttService.getDeviceControlStates(deviceId);
     
+    // Get telemetry timestamp
+    const telemetryTimestamp = telemetry?.timestamp || null;
+    
     res.json({
       success: true,
       deviceId: device.deviceId,
       status: device.status,
+      lastSeen: device.lastSeen,
       telemetry: sensorData,
+      telemetryTimestamp: telemetryTimestamp,
       alerts: alerts,
       controls: controls
     });
