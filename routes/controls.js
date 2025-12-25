@@ -807,13 +807,18 @@ router.post('/automation', auth, async (req, res) => {
       };
     }
 
+    console.log('Saving control:', JSON.stringify(control.toObject(), null, 2));
+    
     await control.save();
+    console.log('Control saved successfully:', control._id);
+    
     await control.populate('userId', 'username fullName');
 
     res.status(201).json(control);
   } catch (error) {
-    console.error('Save automation error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Save automation error:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
