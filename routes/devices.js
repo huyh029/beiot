@@ -298,10 +298,20 @@ router.get('/controls/:deviceId', async (req, res) => {
       
       for (const control of alertControls) {
         const alertSetting = control.alertSettings;
-        if (!alertSetting) continue;
+        console.log(`🔔 Alert setting:`, JSON.stringify(alertSetting));
+        
+        if (!alertSetting) {
+          console.log(`🔔 No alertSetting found, skipping`);
+          continue;
+        }
         
         const sensorValue = sensorData[alertSetting.sensor];
-        if (sensorValue === null || sensorValue === undefined) continue;
+        console.log(`🔔 Checking ${alertSetting.sensor}: value=${sensorValue}, condition=${alertSetting.conditionType}, min=${alertSetting.minValue}, max=${alertSetting.maxValue}`);
+        
+        if (sensorValue === null || sensorValue === undefined) {
+          console.log(`🔔 Sensor value is null/undefined, skipping`);
+          continue;
+        }
         
         let shouldAlert = false;
         let alertCondition = '';
