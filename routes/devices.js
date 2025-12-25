@@ -285,6 +285,94 @@ router.get('/controls/:deviceId', async (req, res) => {
     }
     // === END THRESHOLD CHECK ===
     
+    // === CHECK ALERT SETTINGS (sensor-based notifications) ===
+    if (hasSensorData) {
+      const alertControls = await Control.find({
+        deviceId: device._id,
+        controlType: 'alert',
+        isActive: true,
+        'alertSettings.enabled': true
+      });
+      
+      console.log(`🔔 Found ${alertControls.length} alert controls for device ${device.name}`);
+      
+      for (const control of alertControls) {
+        const alertSetting = control.alertSettings;
+        if (!alertSetting) continue;
+        
+        const sensorValue = sensorData[alertSetting.sensor];
+        if (sensorValue === null || sensorValue === undefined) continue;
+        
+        let shouldAlert = false;
+        let alertCondition = '';
+        
+        if (alertSetting.conditionType === 'above' && sensorValue > alertSetting.maxValue) {
+          shouldAlert = true;
+          alertCondition = 'above';
+        } else if (alertSetting.conditionType === 'below' && sensorValue < alertSetting.minValue) {
+          shouldAlert = true;
+          alertCondition = 'below';
+        } else if (alertSetting.conditionType === 'range') {
+          if (sensorValue < alertSetting.minValue) {
+            shouldAlert = true;
+            alertCondition = 'below';
+          } else if (sensorValue > alertSetting.maxValue) {
+            shouldAlert = true;
+            alertCondition = 'above';
+          }
+        }
+        
+        if (shouldAlert) {
+          const cooldownKey = `${deviceId}_alert_${alertSetting.sensor}`;
+          const lastAlert = alertCooldowns.get(cooldownKey);
+          const now = Date.now();
+          
+          if (!lastAlert || (now - lastAlert) > ALERT_COOLDOWN) {
+            alertCooldowns.set(cooldownKey, now);
+            
+            const thresholdValue = alertCondition === 'above' ? alertSetting.maxValue : alertSetting.minValue;
+            
+            alerts.push({
+              type: 'alert',
+              sensorType: alertSetting.sensor,
+              value: sensorValue,
+              threshold: thresholdValue,
+              condition: alertCondition,
+              message: alertSetting.message
+            });
+            
+            console.log(`🔔 Alert triggered: ${alertSetting.sensor} ${alertCondition} ${thresholdValue} (current: ${sensorValue})`);
+            
+            // Send WebSocket notification
+            if (wsService) {
+              wsService.sendNotificationToUser(device.ownerId._id.toString(), {
+                type: 'sensor_alert',
+                message: alertSetting.message || `⚠️ ${device.name}: ${getSensorName(alertSetting.sensor)} ${alertCondition === 'above' ? 'vượt' : 'dưới'} ngưỡng - Hiện tại: ${sensorValue}`,
+                severity: 'warning',
+                deviceId: device._id,
+                sensorType: alertSetting.sensor,
+                value: sensorValue
+              });
+            }
+            
+            // Send email alert
+            if (device.ownerId?.email) {
+              emailService.sendThresholdAlert(device.ownerId.email, {
+                deviceName: device.name,
+                sensorType: alertSetting.sensor,
+                value: sensorValue,
+                threshold: thresholdValue,
+                condition: alertCondition
+              }).catch(err => console.error('Alert email error:', err));
+              
+              console.log(`📧 Alert email sent to ${device.ownerId.email}`);
+            }
+          }
+        }
+      }
+    }
+    // === END ALERT CHECK ===
+    
     // Get control states from MQTT cache
     const controls = mqttService.getDeviceControlStates(deviceId);
     
