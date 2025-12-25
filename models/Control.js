@@ -13,7 +13,7 @@ const controlSchema = new mongoose.Schema({
   },
   controlType: {
     type: String,
-    enum: ['light', 'irrigation', 'fan', 'heater', 'cooler', 'fertilizer'],
+    enum: ['light', 'irrigation', 'fan', 'heater', 'cooler', 'fertilizer', 'reminder', 'alert'],
     required: true
   },
   mode: {
