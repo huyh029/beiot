@@ -67,11 +67,14 @@ cron.schedule('*/5 * * * *', () => {
   require('./services/plantService').updateGrowthProgress(wsService);
 });
 
-// Check device offline status every minute
+// Check device offline status every 15 seconds
 const Device = require('./models/Device');
-const OFFLINE_TIMEOUT = 1 * 60 * 1000; // 1 phút không gọi API thì offline
+const User = require('./models/User');
+const emailService = require('./services/emailService');
+const OFFLINE_TIMEOUT = 15 * 1000; // 15 giây không gọi API thì offline
 
-cron.schedule('* * * * *', async () => {
+// Use setInterval for more frequent checks (every 15 seconds)
+setInterval(async () => {
   try {
     const cutoffTime = new Date(Date.now() - OFFLINE_TIMEOUT);
     
@@ -79,7 +82,7 @@ cron.schedule('* * * * *', async () => {
     const devicesToMarkOffline = await Device.find({
       status: 'online',
       lastSeen: { $lt: cutoffTime }
-    }).populate('assignedUsers', '_id');
+    }).populate('assignedUsers', '_id email').populate('ownerId', '_id email');
     
     if (devicesToMarkOffline.length > 0) {
       // Update status
@@ -90,34 +93,88 @@ cron.schedule('* * * * *', async () => {
       
       console.log(`📴 ${devicesToMarkOffline.length} device(s) marked offline`);
       
-      // Broadcast notifications
+      // Broadcast notifications and send emails
       for (const device of devicesToMarkOffline) {
+        console.log(`📴 Processing offline device: ${device.name} (${device.deviceId})`);
+        console.log(`📴 Owner data:`, device.ownerId);
+        
         // Broadcast status change via WebSocket
         wsService.broadcastDeviceStatus(device._id.toString(), 'offline');
         
-        // Notify owner
-        wsService.sendNotificationToUser(device.ownerId.toString(), {
-          type: 'device_offline',
-          message: `Thiết bị "${device.name}" đã offline`,
-          severity: 'warning',
-          deviceId: device._id
-        });
+        // Get owner email - handle both populated and non-populated cases
+        let ownerEmail = null;
+        if (device.ownerId) {
+          if (typeof device.ownerId === 'object' && device.ownerId.email) {
+            ownerEmail = device.ownerId.email;
+          } else {
+            // If not populated, fetch owner manually
+            const owner = await User.findById(device.ownerId).select('email');
+            ownerEmail = owner?.email;
+          }
+        }
         
-        // Notify assigned users
-        for (const user of device.assignedUsers) {
-          wsService.sendNotificationToUser(user._id.toString(), {
+        console.log(`📴 Owner email: ${ownerEmail}`);
+        
+        // Notify owner via WebSocket
+        const ownerId = device.ownerId?._id || device.ownerId;
+        if (ownerId) {
+          wsService.sendNotificationToUser(ownerId.toString(), {
             type: 'device_offline',
             message: `Thiết bị "${device.name}" đã offline`,
             severity: 'warning',
             deviceId: device._id
           });
         }
+        
+        // Send email to owner
+        if (ownerEmail) {
+          try {
+            const result = await emailService.sendDeviceOfflineAlert(ownerEmail, {
+              deviceName: device.name,
+              deviceId: device.deviceId,
+              lastSeen: device.lastSeen
+            });
+            console.log(`📧 Offline alert email to owner ${ownerEmail}: ${result ? 'SUCCESS' : 'FAILED'}`);
+          } catch (emailErr) {
+            console.error(`📧 Email error to owner:`, emailErr.message);
+          }
+        } else {
+          console.log(`📧 No owner email found for device ${device.name}`);
+        }
+        
+        // Notify assigned users
+        if (device.assignedUsers && device.assignedUsers.length > 0) {
+          for (const user of device.assignedUsers) {
+            const userId = user._id || user;
+            wsService.sendNotificationToUser(userId.toString(), {
+              type: 'device_offline',
+              message: `Thiết bị "${device.name}" đã offline`,
+              severity: 'warning',
+              deviceId: device._id
+            });
+            
+            // Send email to assigned users
+            const userEmail = user.email;
+            if (userEmail) {
+              try {
+                const result = await emailService.sendDeviceOfflineAlert(userEmail, {
+                  deviceName: device.name,
+                  deviceId: device.deviceId,
+                  lastSeen: device.lastSeen
+                });
+                console.log(`📧 Offline alert email to user ${userEmail}: ${result ? 'SUCCESS' : 'FAILED'}`);
+              } catch (emailErr) {
+                console.error(`📧 Email error to user:`, emailErr.message);
+              }
+            }
+          }
+        }
       }
     }
   } catch (error) {
     console.error('Offline check error:', error.message);
   }
-});
+}, 15000); // Check every 15 seconds
 
 // Note: Threshold check và email alerts được tích hợp trong API /api/controls/esp/:deviceId
 // Khi ESP32 gọi API, hệ thống sẽ check automation rules và gửi email nếu cần
