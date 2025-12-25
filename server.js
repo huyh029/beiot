@@ -47,9 +47,10 @@ io.on('connection', (socket) => {
 app.set('io', io);
 app.set('wsService', wsService);
 
-// Connect ThingsBoard service to WebSocket
-const thingsBoardService = require('./services/thingsboard');
-thingsBoardService.setWsService(wsService);
+// Connect MQTT service to WebSocket
+const mqttService = require('./services/mqttService');
+mqttService.setWsService(wsService);
+app.set('mqttService', mqttService);
 
 // Note: Removed default telemetry polling cron job
 // Telemetry is now fetched per-device when ESP32 calls /api/devices/controls/:deviceId
@@ -131,7 +132,6 @@ app.use('/api/controls', require('./routes/controls'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/weather', require('./routes/weather'));
 app.use('/api/dashboard', require('./routes/dashboard'));
-app.use('/api/thingsboard', require('./routes/thingsboard'));
 app.use('/api/garden', require('./routes/garden'));
 app.use('/api/camera', require('./routes/camera'));
 
