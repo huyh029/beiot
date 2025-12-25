@@ -43,6 +43,7 @@ class MQTTService extends EventEmitter {
 
     const brokerUrl = `mqtt://${brokerHost}:${this.port}`;
     console.log(`🔌 Connecting to MQTT broker...`);
+    console.log(`📋 MQTT Config: broker=${brokerHost}, port=${this.port}, topicPrefix=${this.topicPrefix}`);
 
     this.client = mqtt.connect(brokerUrl, {
       clientId: `smartgarden_server_${Date.now()}`,
