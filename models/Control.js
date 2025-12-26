@@ -36,11 +36,14 @@ const controlSchema = new mongoose.Schema({
   },
   // Scheduled control
   scheduleSettings: {
+    enabled: { type: Boolean, default: true },
     schedules: [{
+      name: String,
+      time: String, // HH:MM format
       days: [{ type: String, enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] }],
-      startTime: String, // HH:MM format
-      endTime: String,   // HH:MM format
-      intensity: { type: Number, min: 0, max: 100, default: 50 },
+      action: String, // on, off, notify
+      intensity: { type: Number, min: 0, max: 100, default: 100 },
+      duration: { type: Number, default: 0 }, // minutes
       isActive: { type: Boolean, default: true }
     }]
   },
