@@ -8,6 +8,8 @@ class SchedulerService {
       const now = moment().tz('Asia/Ho_Chi_Minh');
       const currentDay = now.format('dddd').toLowerCase();
       const currentTime = now.format('HH:mm');
+      
+      console.log(`⏰ Scheduler: ${currentDay} ${currentTime}`);
 
       // Find all scheduled controls
       const scheduledControls = await Control.find({
