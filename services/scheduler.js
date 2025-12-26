@@ -1,13 +1,15 @@
 const Control = require('../models/Control');
-const moment = require('moment-timezone');
 const mqttService = require('./mqttService');
 
 class SchedulerService {
   static async checkScheduledControls(wsService) {
     try {
-      const now = moment().tz('Asia/Ho_Chi_Minh');
-      const currentDay = now.format('dddd').toLowerCase();
-      const currentTime = now.format('HH:mm');
+      // Get current time in Vietnam timezone
+      const now = new Date();
+      const vnTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+      const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const currentDay = days[vnTime.getDay()];
+      const currentTime = vnTime.toTimeString().slice(0, 5); // HH:mm
       
       console.log(`⏰ Scheduler: ${currentDay} ${currentTime}`);
 
