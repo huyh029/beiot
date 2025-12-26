@@ -59,7 +59,8 @@ app.set('mqttService', mqttService);
 // Scheduled tasks for automated controls
 cron.schedule('* * * * *', () => {
   // Check and execute scheduled controls every minute
-  console.log('⏰ Cron: Running scheduler check...');
+  const now = new Date();
+  console.log(`⏰ Cron: Running scheduler check at ${now.toISOString()} (UTC) / ${now.toLocaleString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh'})} (VN)`);
   require('./services/scheduler').checkScheduledControls(wsService);
 });
 
