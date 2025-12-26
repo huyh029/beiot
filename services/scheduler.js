@@ -51,11 +51,18 @@ class SchedulerService {
         'scheduleSettings.schedules': { $exists: true, $ne: [] }
       }).populate('deviceId', 'name deviceId');
 
+      console.log(`⏰ Checking schedules: ${currentDay} ${currentTime}, found ${controls.length} controls`);
+
       for (const control of controls) {
         if (!control.scheduleSettings?.schedules) continue;
 
         for (const schedule of control.scheduleSettings.schedules) {
-          if (!schedule.days?.includes(currentDay)) continue;
+          console.log(`⏰ Schedule: ${control.controlType} at ${schedule.time}, days: ${schedule.days?.join(',')}, current: ${currentDay} ${currentTime}`);
+          
+          if (!schedule.days?.includes(currentDay)) {
+            console.log(`⏰ Day not matched, skipping`);
+            continue;
+          }
 
           // Check if current time matches
           if (schedule.time === currentTime) {
