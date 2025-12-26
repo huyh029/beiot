@@ -75,24 +75,31 @@ class SchedulerService {
             // Send command via MQTT
             const espDeviceId = control.deviceId?.deviceId;
             if (espDeviceId) {
+              // Map action names to ESP32 control names
+              const actionMap = {
+                'water': 'pump',      // water -> pump
+                'irrigation': 'pump'  // irrigation -> pump
+              };
+              const controlType = actionMap[schedule.action] || schedule.action || control.controlType;
+              
               mqttService.controlDevice(
                 espDeviceId,
-                schedule.action || control.controlType,
+                controlType,
                 'on',
                 schedule.intensity || 100
               );
-              console.log('MQTT scheduled control sent');
-
+              console.log(`MQTT scheduled control sent: ${controlType}`);
               // If duration is set, schedule auto-off
               if (schedule.duration && schedule.duration > 0) {
+                const offControlType = controlType; // Use same mapped type
                 setTimeout(() => {
                   mqttService.controlDevice(
                     espDeviceId,
-                    schedule.action || control.controlType,
+                    offControlType,
                     'off',
                     0
                   );
-                  console.log(`⏰ Auto-off after ${schedule.duration} minutes`);
+                  console.log(`⏰ Auto-off ${offControlType} after ${schedule.duration} minutes`);
                 }, schedule.duration * 60 * 1000);
               }
             }
