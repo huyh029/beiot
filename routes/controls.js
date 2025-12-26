@@ -746,19 +746,20 @@ router.post('/automation', auth, async (req, res) => {
     }
 
     // For alert and reminder, always create new (allow multiple)
-    // For other types, find existing or create new
+    // For schedule and sensor, also allow multiple (don't overwrite)
     let control;
     
-    if (type === 'alert' || type === 'reminder') {
-      // Always create new alert/reminder
+    if (type === 'alert' || type === 'reminder' || type === 'schedule' || type === 'sensor') {
+      // Always create new - allow multiple automations of same type
       control = new Control({
         deviceId,
         userId: user._id,
         controlType,
-        mode: type === 'alert' ? 'threshold' : 'scheduled'
+        mode: type === 'alert' ? 'threshold' : (type === 'schedule' || type === 'reminder') ? 'scheduled' : 'auto'
       });
+      console.log(`Creating new ${type} control for ${controlType}`);
     } else {
-      // Find existing or create new for schedule/sensor
+      // Find existing or create new for other types
       control = await Control.findOne({ 
         deviceId, 
         controlType,
@@ -770,7 +771,7 @@ router.post('/automation', auth, async (req, res) => {
           deviceId,
           userId: user._id,
           controlType,
-          mode: type === 'schedule' ? 'scheduled' : 'auto'
+          mode: 'manual'
         });
       }
     }
