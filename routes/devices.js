@@ -5,6 +5,7 @@ const User = require('../models/User');
 const SensorData = require('../models/SensorData');
 const Control = require('../models/Control');
 const emailService = require('../services/emailService');
+const deviceController = require('../controllers/device.controller');
 
 const router = express.Router();
 
@@ -858,5 +859,58 @@ router.get('/stats/overview', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// ============================================
+// BEIOT ROUTES (with Swagger documentation)
+// ============================================
+
+/**
+ * @swagger
+ * tags:
+ *   name: Device
+ *   description: Device management
+ */
+
+/**
+ * @swagger
+ * /api/devices/house/{houseId}:
+ *   get:
+ *     summary: Get devices by houseId (BEIOT)
+ *     tags: [Device]
+ *     parameters:
+ *       - in: path
+ *         name: houseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List devices
+ */
+router.get('/house/:houseId', deviceController.getByHouse);
+
+/**
+ * @swagger
+ * /api/devices/update/{deviceId}:
+ *   put:
+ *     summary: Update device (BEIOT)
+ *     tags: [Device]
+ *     parameters:
+ *       - in: path
+ *         name: deviceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Update success
+ */
+router.put('/update/:deviceId', deviceController.updateDevice);
 
 module.exports = router;

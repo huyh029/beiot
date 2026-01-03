@@ -3,6 +3,7 @@ const { auth, checkDeviceAccess } = require('../middleware/auth');
 const SensorData = require('../models/SensorData');
 const Device = require('../models/Device');
 const PlantService = require('../services/plantService');
+const sensorService = require('../services/sensor.service');
 
 const router = express.Router();
 
@@ -327,6 +328,21 @@ router.delete('/cleanup', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Cleanup sensor data error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ============================================
+// BEIOT ROUTES
+// ============================================
+
+// Get sensor history (BEIOT)
+router.get("/history/:deviceId", async (req, res) => {
+  try {
+    const data = await sensorService.history(req.params.deviceId);
+    res.json(data);
+  } catch (error) {
+    console.error('Get sensor history error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

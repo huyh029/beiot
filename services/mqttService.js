@@ -16,14 +16,14 @@ class MQTTService extends EventEmitter {
     this.connected = false;
 
     // Config from env - REQUIRED
-    this.broker = process.env.ESP32_MQTT_BROKER;
-    this.port = parseInt(process.env.ESP32_MQTT_PORT);
-    this.topicPrefix = process.env.ESP32_TOPIC_PREFIX;
+    this.broker = process.env.ESP32_MQTT_BROKER || process.env.MQTT_BROKER;
+    this.port = parseInt(process.env.ESP32_MQTT_PORT) || 1883;
+    this.topicPrefix = process.env.ESP32_TOPIC_PREFIX || 'smartgarden';
 
     // Validate required env vars
-    if (!this.broker || !this.port || !this.topicPrefix) {
+    if (!this.broker) {
       console.error('❌ Missing MQTT config in environment variables');
-      console.error('Required: ESP32_MQTT_BROKER, ESP32_MQTT_PORT, ESP32_TOPIC_PREFIX');
+      console.error('Required: ESP32_MQTT_BROKER or MQTT_BROKER');
       return;
     }
 
@@ -62,11 +62,14 @@ class MQTTService extends EventEmitter {
       console.log('✅ Connected to MQTT broker');
       this.connected = true;
       
-      // Subscribe to all device topics
+      // Subscribe to all device topics (BE format)
       const topics = [
         `${this.topicPrefix}/+/telemetry`,    // Device sends sensor data
         `${this.topicPrefix}/+/status`,       // Device status (online/offline)
-        `${this.topicPrefix}/+/control/ack`   // Device acknowledges control command
+        `${this.topicPrefix}/+/control/ack`,  // Device acknowledges control command
+        // BEIOT format
+        'garden/+/sensors',                   // BEIOT sensor data
+        'garden/+/keep_alive'                 // BEIOT keep alive
       ];
       
       topics.forEach(topic => {
@@ -101,6 +104,23 @@ class MQTTService extends EventEmitter {
   handleMessage(topic, message) {
     try {
       const data = JSON.parse(message.toString());
+      
+      // Handle BEIOT format (garden/+/sensors, garden/+/keep_alive)
+      if (topic.startsWith('garden/')) {
+        const parts = topic.split('/');
+        const deviceId = parts[1];
+        
+        if (topic.includes('sensors')) {
+          // Handle BEIOT sensor data
+          this.handleBeiotSensorData(deviceId, data);
+        } else if (topic.includes('keep_alive')) {
+          // Handle BEIOT keep alive
+          this.handleBeiotKeepAlive(deviceId);
+        }
+        return;
+      }
+      
+      // Handle BE format (smartgarden/+/telemetry, etc.)
       const parts = topic.split('/');
       const deviceId = parts[1]; // smartgarden/{deviceId}/...
       const messageType = parts[2];
@@ -122,6 +142,38 @@ class MQTTService extends EventEmitter {
       }
     } catch (err) {
       console.error('❌ MQTT message parse error:', err);
+    }
+  }
+
+  // Handle BEIOT sensor data format
+  async handleBeiotSensorData(deviceId, data) {
+    console.log(`📥 BEIOT Sensor [${deviceId}]:`, data);
+    
+    // Save sensor data using BEIOT service
+    try {
+      const sensorService = require('./sensor.service');
+      await sensorService.save(deviceId, data);
+      
+      // Check alerts using BEIOT service
+      const alertService = require('./alert.service');
+      await alertService.check(deviceId, data);
+    } catch (err) {
+      console.error('❌ BEIOT sensor data handling error:', err);
+    }
+    
+    // Also handle as regular telemetry for consistency
+    this.handleTelemetry(deviceId, data);
+  }
+
+  // Handle BEIOT keep alive
+  async handleBeiotKeepAlive(deviceId) {
+    console.log(`💓 BEIOT Keep Alive [${deviceId}]`);
+    
+    try {
+      const deviceService = require('./device.service');
+      await deviceService.updateStatus(deviceId);
+    } catch (err) {
+      console.error('❌ BEIOT keep alive handling error:', err);
     }
   }
 
@@ -363,6 +415,17 @@ class MQTTService extends EventEmitter {
 
     const topic = `${this.topicPrefix}/${deviceId}/request`;
     this.client.publish(topic, JSON.stringify({ type: 'getState' }));
+    return true;
+  }
+
+  // BEIOT compatible publish method
+  publish(topic, payload) {
+    if (!this.connected) {
+      console.error('❌ MQTT not connected, cannot publish');
+      return false;
+    }
+    
+    this.client.publish(topic, JSON.stringify(payload));
     return true;
   }
 }

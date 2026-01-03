@@ -2,10 +2,65 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
+const authController = require('../controllers/auth.controller');
 
 const router = express.Router();
 
-// Login
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Authentication APIs
+ */
+
+// Register (from BEIOT)
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Register success
+ */
+router.post('/register', authController.register);
+
+// Login (enhanced version from BE)
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username, password]
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login success
+ */
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -36,11 +91,13 @@ router.post('/login', async (req, res) => {
     );
 
     // Send login notification via WebSocket
-    wsService.sendNotificationToUser(user._id, {
-      type: 'login',
-      message: 'You have successfully logged in',
-      severity: 'info'
-    });
+    if (wsService) {
+      wsService.sendNotificationToUser(user._id, {
+        type: 'login',
+        message: 'You have successfully logged in',
+        severity: 'info'
+      });
+    }
 
     res.json({
       token,
