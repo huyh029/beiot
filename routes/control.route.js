@@ -1,0 +1,1 @@
+const r=require('express').Router();r.post('/command',(q,s)=>s.json({ok:true}));module.exports=r;
