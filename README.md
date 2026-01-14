@@ -109,7 +109,7 @@ Bao gồm:
 
 ## Hướng dẫn cài đặt & chạy project
 ### Bước 1: Clone project
-git clone https://github.com/RiinaRinaRi/smart-garden-api.git
+git clone [https://github.com/huyh029/beiot/tree/beiot-main-backup](https://github.com/RiinaRinaRi/smart-garden-API)
 cd smart-garden-api
 
 ### Bước 2: Cài đặt thư viện
