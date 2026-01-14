@@ -32,6 +32,27 @@ router.get('/', authMiddleware, houseController.getHouses);
  *     tags: [House]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Garden of B
+ *               location:
+ *                 type: string
+ *                 example: Ho Chi Minh
+ *               description:
+ *                 type: string
+ *                 example: Vườn ngoài ban công
+ *     responses:
+ *       201:
+ *         description: House created successfully
  */
 router.post('/', authMiddleware, houseController.createHouse);
 
@@ -43,6 +64,32 @@ router.post('/', authMiddleware, houseController.createHouse);
  *     tags: [House]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: houseId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Garden of B
+ *               location:
+ *                 type: string
+ *                 example: Ho Chi Minh
+ *               description:
+ *                 type: string
+ *                 example: Vườn ngoài ban công
+ *     responses:
+ *       200:
+ *         description: House updated successfully
  */
 router.put('/update-house/:houseId', authMiddleware, houseController.updateHouse);
 
@@ -54,6 +101,32 @@ router.put('/update-house/:houseId', authMiddleware, houseController.updateHouse
  *     tags: [House]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: houseId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: member@gmail.com
+ *               role:
+ *                 type: string
+ *                 enum: [OWNER, MEMBER]
+ *                 example: MEMBER
+ *     responses:
+ *       200:
+ *         description: Member added successfully
  */
 router.put('/update-member/:houseId', authMiddleware, houseController.addMember);
 
@@ -65,12 +138,35 @@ router.put('/update-member/:houseId', authMiddleware, houseController.addMember)
  *     tags: [House]
  *     security:
  *       - bearerAuth: []
+  *     parameters:
+ *       - in: path
+ *         name: houseId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: member@gmail.com
+ *               role:
+ *                 type: string
+ *                 enum: [OWNER, MEMBER]
+ *                 example: MEMBER
+ *     responses:
+ *       200:
+ *         description: Member added successfully
  */
-router.put(
-  '/delete-member/:houseId/:userId',
-  authMiddleware,
-  houseController.deleteMember
-);
+
+router.put(  '/delete-member/:houseId/:userId',  authMiddleware,  houseController.deleteMember);
 
 /**
  * @swagger
@@ -80,7 +176,18 @@ router.put(
  *     tags: [House]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: houseId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: List events
  */
 router.get('/events/:houseId', authMiddleware, houseController.getEvents);
+
 
 module.exports = router;

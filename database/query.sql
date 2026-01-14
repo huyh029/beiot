@@ -30,8 +30,15 @@ SELECT *
 FROM devices
 WHERE house_id = ?;
 
+SHOW CREATE TABLE houses;
+DESCRIBE houses;
+
 SHOW VARIABLES LIKE 'port';
 SHOW VARIABLES LIKE 'hostname';
 SELECT user, host FROM mysql.user;
+
+USE smart_garden;
+
+SELECT * FROM plant_zones;
 
 

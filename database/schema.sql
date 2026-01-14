@@ -139,3 +139,59 @@ CREATE TABLE events (
         FOREIGN KEY (device_id) REFERENCES devices(id)
         ON DELETE SET NULL
 );
+
+-- ================================
+-- 8. PLANTS 
+-- ================================
+CREATE TABLE plants (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    house_id BIGINT NOT NULL,
+    zone_id BIGINT NOT NULL,
+
+    plant_type VARCHAR(100) NOT NULL,
+    variety VARCHAR(100),
+
+    planting_date DATE,
+    expected_harvest_date DATE,
+
+    moisture_min INT,
+    moisture_max INT,
+
+    light_min INT,
+    light_max INT,
+
+    temperature_min INT,
+    temperature_max INT,
+
+    notes TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_plants_house
+        FOREIGN KEY (house_id) REFERENCES houses(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_plants_zone
+        FOREIGN KEY (zone_id) REFERENCES plant_zones(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE plant_zones (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    house_id BIGINT NOT NULL,
+
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_zone_house
+        FOREIGN KEY (house_id) REFERENCES houses(id)
+        ON DELETE CASCADE
+);
+ALTER TABLE plant_zones
+ADD COLUMN area_m2 DECIMAL(10,2) NULL AFTER description;
+

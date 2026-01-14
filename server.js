@@ -20,6 +20,9 @@ app.use("/api/dashboard", require("./routes/dashboard.route"));
 app.use("/api/alerts", require("./routes/alert.route"));
 app.use('/api/data', require('./routes/data.route'));
 app.use('/api/house', require('./routes/house.route'));
+app.use('/api/plants', require('./routes/plant.route'));
+app.use('/api/plant-zones', require('./routes/plantZone.route'));
+
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
