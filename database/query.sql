@@ -30,3 +30,8 @@ SELECT *
 FROM devices
 WHERE house_id = ?;
 
+SHOW VARIABLES LIKE 'port';
+SHOW VARIABLES LIKE 'hostname';
+SELECT user, host FROM mysql.user;
+
+

@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const jwtConfig = require('../config/jwt');
+//const jwtConfig = require('../config/jwt');
 
 /**
  * REGISTER
@@ -64,8 +64,11 @@ exports.login = async ({ email, password }) => {
       id: user.id,
       role: user.role
     },
-    jwtConfig.secret,
-    { expiresIn: jwtConfig.expiresIn }
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '1d',
+      algorithm: 'HS256'
+    }
   );
 
   return {

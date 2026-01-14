@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const houseController = require('../controllers/house.controller');
-
+const authMiddleware = require('../middleware/auth.middleware');
 
 /**
  * @swagger
@@ -14,13 +14,15 @@ const houseController = require('../controllers/house.controller');
  * @swagger
  * /api/house:
  *   get:
- *     summary: Get all houses
+ *     summary: Get all houses of current user
  *     tags: [House]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List houses
  */
-router.get('/', houseController.getHouses);
+router.get('/', authMiddleware, houseController.getHouses);
 
 /**
  * @swagger
@@ -28,17 +30,10 @@ router.get('/', houseController.getHouses);
  *   post:
  *     summary: Create new house
  *     tags: [House]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       201:
- *         description: House created
+ *     security:
+ *       - bearerAuth: []
  */
-router.post('/', houseController.createHouse);
+router.post('/', authMiddleware, houseController.createHouse);
 
 /**
  * @swagger
@@ -46,17 +41,10 @@ router.post('/', houseController.createHouse);
  *   put:
  *     summary: Update house info
  *     tags: [House]
- *     parameters:
- *       - in: path
- *         name: houseId
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Update success
+ *     security:
+ *       - bearerAuth: []
  */
-router.put('/update-house/:houseId', houseController.updateHouse);
+router.put('/update-house/:houseId', authMiddleware, houseController.updateHouse);
 
 /**
  * @swagger
@@ -64,17 +52,10 @@ router.put('/update-house/:houseId', houseController.updateHouse);
  *   put:
  *     summary: Add member to house
  *     tags: [House]
- *     parameters:
- *       - in: path
- *         name: houseId
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Member added
+ *     security:
+ *       - bearerAuth: []
  */
-router.put('/update-member/:houseId', houseController.addMember);
+router.put('/update-member/:houseId', authMiddleware, houseController.addMember);
 
 /**
  * @swagger
@@ -82,39 +63,24 @@ router.put('/update-member/:houseId', houseController.addMember);
  *   put:
  *     summary: Remove member from house
  *     tags: [House]
- *     parameters:
- *       - in: path
- *         name: houseId
- *         required: true
- *       - in: path
- *         name: userId
- *         required: true
- *     responses:
- *       200:
- *         description: Member removed
+ *     security:
+ *       - bearerAuth: []
  */
-router.put('/delete-member/:houseId/:userId', houseController.deleteMember);
+router.put(
+  '/delete-member/:houseId/:userId',
+  authMiddleware,
+  houseController.deleteMember
+);
 
 /**
  * @swagger
  * /api/house/events/{houseId}:
  *   get:
- *     summary: Get events / alerts by house
+ *     summary: Get events by house
  *     tags: [House]
- *     parameters:
- *       - in: path
- *         name: houseId
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: List events of the house
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: House not found
+ *     security:
+ *       - bearerAuth: []
  */
-router.get('/events/:houseId', houseController.getEvents);
+router.get('/events/:houseId', authMiddleware, houseController.getEvents);
 
 module.exports = router;
