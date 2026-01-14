@@ -12,7 +12,7 @@ const houseController = require('../controllers/house.controller');
 
 /**
  * @swagger
- * /v1/house:
+ * /api/house:
  *   get:
  *     summary: Get all houses
  *     tags: [House]
@@ -24,7 +24,7 @@ router.get('/', houseController.getHouses);
 
 /**
  * @swagger
- * /v1/house:
+ * /api/house:
  *   post:
  *     summary: Create new house
  *     tags: [House]
@@ -42,7 +42,7 @@ router.post('/', houseController.createHouse);
 
 /**
  * @swagger
- * /v1/house/update-house/{houseId}:
+ * /api/house/update-house/{houseId}:
  *   put:
  *     summary: Update house info
  *     tags: [House]
@@ -60,7 +60,7 @@ router.put('/update-house/:houseId', houseController.updateHouse);
 
 /**
  * @swagger
- * /v1/house/update-member/{houseId}:
+ * /api/house/update-member/{houseId}:
  *   put:
  *     summary: Add member to house
  *     tags: [House]
@@ -78,7 +78,7 @@ router.put('/update-member/:houseId', houseController.addMember);
 
 /**
  * @swagger
- * /v1/house/delete-member/{houseId}/{userId}:
+ * /api/house/delete-member/{houseId}/{userId}:
  *   put:
  *     summary: Remove member from house
  *     tags: [House]
@@ -97,7 +97,7 @@ router.put('/delete-member/:houseId/:userId', houseController.deleteMember);
 
 /**
  * @swagger
- * /v1/house/events/{houseId}:
+ * /api/house/events/{houseId}:
  *   get:
  *     summary: Get events / alerts by house
  *     tags: [House]
