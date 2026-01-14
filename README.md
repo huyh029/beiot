@@ -1,4 +1,4 @@
-qq# SMART GARDEN – BACKEND API (NODE.JS)
+# SMART GARDEN – BACKEND API (NODE.JS)
 
 Backend API cho hệ thống **Smart Garden / Smart Agriculture**, phục vụ thu thập dữ liệu cảm biến, điều khiển thiết bị IoT, cảnh báo và lưu lịch sử hoạt động thông qua REST API kết hợp MQTT.
 
