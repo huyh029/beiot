@@ -7,6 +7,10 @@ SELECT * FROM houses;
 SELECT * FROM devices;
 SELECT * FROM sensor_data;
 SELECT * FROM alerts;
+SELECT COUNT(*) FROM houses;
+SELECT * FROM devices WHERE house_id = ?;
+
+DELETE FROM devices WHERE id = 3;
 
 SELECT id, name, email, password, role
 FROM users
