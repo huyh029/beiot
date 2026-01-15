@@ -3,16 +3,16 @@ INSERT INTO devices (
     device_code,
     name,
     location,
-    status,
-    created_at
-) VALUES (
-    1,
-    'ESP32-001',
-    'Sensor độ ẩm đất',
-    'Luống A',
-    'OFFLINE',
-    NOW()
+    status
+)
+VALUES (
+    27,
+    'ESP32_001',
+    'ESP32 Sân vườn',
+    'Sân vườn',
+    'ONLINE'
 );
+
 
 
 UPDATE devices
