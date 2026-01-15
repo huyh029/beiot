@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const alertController = require('../controllers/alert.controller');
+const auth = require('../middleware/auth.middleware');
 
 /**
  * @swagger
@@ -29,6 +30,6 @@ const alertController = require('../controllers/alert.controller');
  *       500:
  *         description: Server error
  */
-router.get('/:houseId', alertController.getAlerts);
+router.get('/:houseId', auth, alertController.getAlerts);
 
 module.exports = router;

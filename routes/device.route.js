@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const deviceController = require('../controllers/device.controller');
-
+const auth = require('../middleware/auth.middleware');
 
 /**
  * @swagger
@@ -27,17 +27,17 @@ const deviceController = require('../controllers/device.controller');
  *       200:
  *         description: List devices
  */
-router.get('/:houseId', deviceController.getByHouse);
+router.get('/:houseId', auth, deviceController.getByHouse);
 
 /**
  * @swagger
- * /api/devices/{deviceId}:
+ * /api/devices/{houseId}:
  *   put:
  *     summary: Update device
  *     tags: [Device]
  *     parameters:
  *       - in: path
- *         name: deviceId
+ *         name: houseId 
  *         required: true
  *         schema:
  *           type: integer
@@ -51,7 +51,7 @@ router.get('/:houseId', deviceController.getByHouse);
  *       200:
  *         description: Update success
  */
-router.put('/:deviceId', deviceController.updateDevice);
+router.put('/:deviceId', auth, deviceController.updateDevice);
 
 
 module.exports = router;

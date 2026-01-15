@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const dataController = require('../controllers/data.controller');
-
+const auth = require('../middleware/auth.middleware');
 
 /**
  * @swagger
@@ -12,7 +12,7 @@ const dataController = require('../controllers/data.controller');
 
 /**
  * @swagger
- * /v1/data/{houseId}:
+ * /api/data/{houseId}:
  *   get:
  *     summary: Get data statistics by house
  *     tags: [Data]
@@ -26,7 +26,7 @@ const dataController = require('../controllers/data.controller');
  *       200:
  *         description: Data statistics
  */
-router.get('/:houseId', dataController.getStatistics);
+router.get('/:houseId', auth, dataController.getStatistics);
 
 
 module.exports = router;
